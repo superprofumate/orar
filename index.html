@@ -3,130 +3,326 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Site-ul meu | Portofoliu</title>
-  <meta name="description" content="Portofoliul meu: proiecte, servicii și contact." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
-  <meta property="og:title" content="Site-ul meu | Portofoliu">
-  <meta property="og:description" content="Proiecte, servicii și contact.">
-  <meta property="og:type" content="website">
-  <meta name="robots" content="index, follow" />
+  <title>Orar disponibilități | Luni–Vineri 07:00–21:00</title>
+  <meta name="description" content="Selectează intervalele orare disponibile (Luni–Vineri, 07:00–21:00). Include nume, resetare, undo, salvare și trimitere." />
+  <meta name="robots" content="noindex, nofollow" />
   <style>
-    :root {
-      --maxw: 1100px;
-      --radius: 16px;
-      --shadow: 0 10px 30px rgba(0,0,0,.07);
+    :root{
+      --bg:#0b1220; /* albastru-închis subtil */
+      --panel:#0f172a; /* slate-900 */
+      --muted:#94a3b8; /* slate-400 */
+      --text:#e5e7eb; /* zinc-200 */
+      --accent:#22d3ee; /* cyan-400 */
+      --accent-2:#4f46e5; /* indigo-600 */
+      --danger:#ef4444;
+      --ok:#22c55e;
+      --grid:#1f2937; /* gray-800 */
+      --sel-bg:rgba(34, 211, 238, .2);
+      --sel-br:#22d3ee;
+      --radius:16px;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --maxw:1100px;
     }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #0f172a; background: #f8fafc; }
-    a { color: inherit; text-decoration: none; }
-    header, main, footer { width: 100%; }
-    .container { max-width: var(--maxw); margin: 0 auto; padding: 24px; }
-    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .brand { font-weight: 800; letter-spacing: .3px; }
-    .btn {
-      display: inline-block; padding: 12px 18px; border-radius: 999px; border: 1px solid #0f172a20;
-      background: white; box-shadow: var(--shadow); transition: transform .05s ease;
-    }
-    .btn:active { transform: translateY(1px); }
-    .btn.primary { background: #0ea5e9; color: white; border-color: #0ea5e9; }
-    .hero {
-      margin-top: 32px; display: grid; gap: 20px; align-items: center;
-    }
-    @media (min-width: 900px) {
-      .hero { grid-template-columns: 1.1fr 0.9fr; }
-    }
-    .card {
-      background: white; border: 1px solid #0f172a10; border-radius: var(--radius); box-shadow: var(--shadow);
-    }
-    .hero h1 { font-size: clamp(32px, 4.5vw, 56px); line-height: 1.05; margin: 0 0 10px; }
-    .hero p { font-size: clamp(16px, 1.6vw, 20px); opacity: .8; }
-    .hero .media { aspect-ratio: 16 / 10; width: 100%; border-radius: var(--radius); background: linear-gradient(135deg, #bae6fd, #e0e7ff); display: grid; place-items: center; font-weight: 700; }
-    .section { margin: 56px 0; }
-    .grid { display: grid; gap: 18px; }
-    @media (min-width: 800px) { .grid.cols-3 { grid-template-columns: repeat(3, 1fr); } }
-    .feature { padding: 18px; }
-    .muted { opacity: .75; }
-    .about p { margin: 0; }
-    form { display: grid; gap: 12px; }
-    input, textarea {
-      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #0f172a20; outline: none; background: #ffffff;
-    }
-    input:focus, textarea:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px #0ea5e930; }
-    footer { padding: 30px 0; color: #334155; font-size: 14px; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 20% -10%, #111827 0%, var(--bg) 40%, #05070c 100%); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:var(--text);}
+    a{color:inherit;text-decoration:none}
+
+    .container{max-width:var(--maxw);margin:0 auto;padding:20px}
+    header{position:sticky;top:0;background:linear-gradient(180deg, rgba(5,7,12,.9), rgba(5,7,12,.65));backdrop-filter: blur(6px);z-index:20;border-bottom:1px solid #0b1220}
+    .brand{font-weight:800;letter-spacing:.3px;font-size:18px;display:flex;align-items:center;gap:10px}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+    .nav{display:flex;align-items:center;justify-content:space-between}
+
+    .panel{margin-top:18px;background:linear-gradient(180deg, #0e162a, #0a1222);border:1px solid #0f2139;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .panel .inner{padding:18px}
+
+    .toolbar{display:grid;gap:12px}
+    @media (min-width: 820px){ .toolbar{grid-template-columns: 1.5fr auto auto auto auto} }
+
+    label{font-size:14px;color:var(--muted)}
+    input[type="text"]{width:100%;padding:12px 14px;border-radius:12px;background:#0b1323;border:1px solid #14233c;color:var(--text);outline:none}
+    input[type="text"]:focus{border-color:#1d3d6b;box-shadow:0 0 0 3px rgba(79,70,229,.25)}
+
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid #20304a;background:#0b1323;color:var(--text);cursor:pointer;user-select:none;transition:transform .05s ease, background .2s}
+    .btn:hover{background:#0f1a31}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(135deg, #2563eb, #06b6d4);border-color:#1d4ed8}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.ok{background:#11261a;border-color:#1f6f3a}
+    .btn.danger{background:#2a1212;border-color:#7f1d1d}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+
+    .grid-wrap{overflow:auto;border-top:1px solid #0b1220;border-radius:0 0 var(--radius) var(--radius)}
+    .grid{display:grid;grid-template-columns: 110px repeat(5, 1fr); min-width:720px}
+
+    .cell{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);min-height:38px;display:grid;place-items:center;position:relative}
+    .cell.head{background:#0a1220;color:#cbd5e1;font-weight:700;position:sticky;top:0;z-index:5}
+    .cell.hour{background:#0a1220;color:#9aa6b2;font-weight:600;justify-content:start;padding-left:12px;position:sticky;left:0;z-index:4}
+    .cell.slot{cursor:pointer}
+    .cell.slot:focus{outline:2px solid #334155;outline-offset:-4px}
+    .cell.slot.selected{background:var(--sel-bg); box-shadow: inset 0 0 0 2px var(--sel-br)}
+
+    .legend{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-top:8px}
+    .swatch{width:14px;height:14px;border-radius:4px;box-shadow:0 0 0 2px var(--sel-br) inset;background:var(--sel-bg)}
+
+    .status{margin-top:10px;font-size:14px;color:var(--muted)}
+
+    .toast{position:fixed;right:20px;bottom:20px;display:grid;gap:10px;z-index:50}
+    .toast .t{padding:12px 14px;background:#0b1323;border:1px solid #1d2d4a;border-radius:12px;box-shadow:var(--shadow)}
+    .t.ok{border-color:#1f6f3a}
+    .t.err{border-color:#7f1d1d}
+
+    footer{color:var(--muted);font-size:12px;padding:18px; text-align:center}
   </style>
 </head>
 <body>
   <header>
     <div class="container nav">
-      <div class="brand">Site-ul Meu</div>
-      <nav>
-        <a class="btn" href="#proiecte">Proiecte</a>
-        <a class="btn" href="#contact">Contact</a>
-        <a class="btn primary" href="#despre">Despre</a>
-      </nav>
+      <div class="brand"><span class="dot"></span> Orar disponibilități</div>
+      <div style="font-size:12px;color:var(--muted)">Luni–Vineri • 07:00–21:00 • selecție multiplă</div>
     </div>
   </header>
 
   <main class="container">
-    <section class="hero">
-      <div>
-        <h1>Bun venit! Construiesc lucruri faine pe web.</h1>
-        <p>Portofoliu, experimente și idei. Site simplu, rapid și ușor de întreținut.</p>
-        <div style="display:flex; gap:10px; margin-top:14px;">
-          <a class="btn primary" href="#proiecte">Vezi proiecte</a>
-          <a class="btn" href="#contact">Scrie-mi</a>
+    <section class="panel">
+      <div class="inner">
+        <div class="toolbar">
+          <div>
+            <label for="name">Nume</label>
+            <input id="name" type="text" placeholder="Introdu numele (obligatoriu pentru trimitere)" />
+          </div>
+          <button id="undoBtn" class="btn" disabled>↶ Undo</button>
+          <button id="resetBtn" class="btn danger">Resetează orar</button>
+          <button id="saveBtn" class="btn">💾 Salvează modificări</button>
+          <button id="sendBtn" class="btn primary" disabled>✈️ Trimite date</button>
         </div>
+        <div class="legend"><span class="swatch"></span> Slot selectat (click pentru a comuta; click + drag pentru selecție continuă)</div>
+        <div class="status" id="status">0 sloturi selectate</div>
       </div>
-      <div class="media card">Previzualizare / Imagine</div>
-    </section>
-
-    <section id="despre" class="section about card" style="padding:22px;">
-      <h2>Despre mine</h2>
-      <p>Sunt [numele tău], pasionat de web. Lucrez cu HTML/CSS/JS și îmi place designul curat.</p>
-    </section>
-
-    <section id="proiecte" class="section">
-      <h2>Proiecte</h2>
-      <div class="grid cols-3">
-        <article class="card feature">
-          <h3>Proiect 1</h3>
-          <p class="muted">Descriere scurtă a proiectului tău.</p>
-          <a class="btn" href="#" target="_blank" rel="noopener">Deschide</a>
-        </article>
-        <article class="card feature">
-          <h3>Proiect 2</h3>
-          <p class="muted">Ce ai construit & ce tehnologii ai folosit.</p>
-          <a class="btn" href="#" target="_blank" rel="noopener">Deschide</a>
-        </article>
-        <article class="card feature">
-          <h3>Proiect 3</h3>
-          <p class="muted">Link spre demo sau repo.</p>
-          <a class="btn" href="#" target="_blank" rel="noopener">Deschide</a>
-        </article>
+      <div class="grid-wrap">
+        <div id="grid" class="grid" aria-label="Orar selectabil Luni–Vineri, 07:00–21:00" role="grid"></div>
       </div>
     </section>
 
-    <section id="contact" class="section card" style="padding:22px;">
-      <h2>Contact</h2>
-      <!-- mailto e cel mai simplu la site static -->
-      <form action="mailto:adresa-ta@email.com" method="post" enctype="text/plain">
-        <input type="text" name="nume" placeholder="Nume" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <textarea name="mesaj" rows="5" placeholder="Mesajul tău..." required></textarea>
-        <button class="btn primary" type="submit">Trimite</button>
-      </form>
-      <p class="muted" style="margin-top:8px;">Sau scrie-mi direct pe email.</p>
-    </section>
+    <footer>© <span id="y"></span> Orar disponibilități. Datele se păstrează local (localStorage).</footer>
   </main>
 
-  <footer>
-    <div class="container">
-      © <span id="y"></span> Site-ul Meu. Toate drepturile rezervate.
-    </div>
-  </footer>
+  <div class="toast" id="toast"></div>
 
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+    (function(){
+      const days = ["Luni","Marți","Miercuri","Joi","Vineri"]; // coloane
+      const startHour = 7; // 07:00 inclusiv
+      const endHour = 21; // 21:00 exclusiv (ultimul slot 20:00–21:00)
+
+      const grid = document.getElementById('grid');
+      const nameInput = document.getElementById('name');
+      const undoBtn = document.getElementById('undoBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const sendBtn = document.getElementById('sendBtn');
+      const status = document.getElementById('status');
+      const toast = document.getElementById('toast');
+
+      const keyOf = (d,h) => `${d}|${String(h).padStart(2,'0')}:00`;
+
+      // stare curentă
+      const selected = new Set();
+      let dragging = false;
+      let dragMode = null; // 'select' sau 'deselect'
+      let currentBatch = [];
+      const history = []; // stivă de acțiuni {changes:[{id, prev, next}]}
+
+      // Construiește headerul
+      const emptyHead = cell('head', '');
+      grid.appendChild(emptyHead);
+      days.forEach(d => grid.appendChild(cell('head', d)));
+
+      // Construiește rândurile ore
+      for (let h = startHour; h < endHour; h++){
+        const label = `${String(h).padStart(2,'0')}:00`;
+        grid.appendChild(cell('hour', label));
+        for (let d = 0; d < days.length; d++){
+          const id = keyOf(days[d], h);
+          const c = cell('slot', '');
+          c.tabIndex = 0; // focusabil pt accesibilitate
+          c.dataset.id = id;
+          c.setAttribute('role','gridcell');
+          c.setAttribute('aria-label', `${days[d]} ${label}`);
+          c.addEventListener('mousedown', onMouseDown);
+          c.addEventListener('mouseenter', onMouseEnter);
+          c.addEventListener('click', onClick); // backup pt tap
+          c.addEventListener('keydown', onKey);
+          grid.appendChild(c);
+        }
+      }
+
+      function cell(kind, text){
+        const div = document.createElement('div');
+        div.className = `cell ${kind}`;
+        if (text) div.textContent = text;
+        return div;
+      }
+
+      function setSelected(id, val){
+        const el = findCell(id);
+        const was = selected.has(id);
+        if (val && !was){ selected.add(id); el.classList.add('selected'); return true; }
+        if (!val && was){ selected.delete(id); el.classList.remove('selected'); return true; }
+        return false;
+      }
+
+      function findCell(id){
+        return grid.querySelector(`.cell.slot[data-id="${CSS.escape(id)}"]`);
+      }
+
+      function beginBatch(){ currentBatch = []; }
+      function recordChange(id, prev, next){ if (prev !== next) currentBatch.push({id, prev, next}); }
+      function endBatch(){ if (currentBatch.length){ history.push({changes: currentBatch}); currentBatch = []; refreshUndo(); } }
+
+      function onMouseDown(e){
+        if (!e.currentTarget.classList.contains('slot')) return;
+        e.preventDefault();
+        dragging = true;
+        document.body.style.userSelect = 'none';
+        const id = e.currentTarget.dataset.id;
+        const was = selected.has(id);
+        dragMode = was ? 'deselect' : 'select';
+        beginBatch();
+        const changed = setSelected(id, dragMode === 'select');
+        recordChange(id, was, !was);
+        updateStatus();
+      }
+
+      function onMouseEnter(e){
+        if (!dragging) return;
+        if (!e.currentTarget.classList.contains('slot')) return;
+        const id = e.currentTarget.dataset.id;
+        const was = selected.has(id);
+        const want = dragMode === 'select';
+        const changed = setSelected(id, want);
+        if (changed) recordChange(id, was, want);
+        updateStatus();
+      }
+
+      function onClick(e){ // single click tap (fără drag)
+        // dacă a fost drag adevărat, evenimentul click vine oricum, dar nu vrem să dublem
+        if (dragging) return;
+        const id = e.currentTarget.dataset.id;
+        const was = selected.has(id);
+        beginBatch();
+        const changed = setSelected(id, !was);
+        recordChange(id, was, !was);
+        endBatch();
+        updateStatus();
+      }
+
+      function onKey(e){
+        if (e.key === ' ' || e.key === 'Enter'){
+          e.preventDefault();
+          const id = e.currentTarget.dataset.id;
+          const was = selected.has(id);
+          beginBatch();
+          setSelected(id, !was);
+          recordChange(id, was, !was);
+          endBatch();
+          updateStatus();
+        }
+      }
+
+      document.addEventListener('mouseup', ()=>{
+        if (dragging){ dragging = false; document.body.style.userSelect = ''; endBatch(); updateStatus(); }
+      });
+
+      // Undo
+      undoBtn.addEventListener('click', ()=>{
+        const act = history.pop();
+        if (!act) return;
+        act.changes.slice().reverse().forEach(ch => { setSelected(ch.id, ch.prev); });
+        refreshUndo();
+        updateStatus();
+      });
+
+      function refreshUndo(){ undoBtn.disabled = history.length === 0; }
+
+      // Reset
+      resetBtn.addEventListener('click', ()=>{
+        beginBatch();
+        [...selected].forEach(id => { recordChange(id, true, false); setSelected(id, false); });
+        endBatch();
+        updateStatus();
+      });
+
+      // Save (localStorage)
+      saveBtn.addEventListener('click', ()=>{
+        const data = serialize();
+        try{
+          localStorage.setItem('orarData', JSON.stringify(data));
+          toastMsg('Modificări salvate local.', 'ok');
+        }catch(err){ toastMsg('Nu s-a putut salva local.', 'err'); }
+      });
+
+      // Send (fake submit)
+      sendBtn.addEventListener('click', ()=>{
+        const data = serialize();
+        if (!data.nume){ nameInput.focus(); toastMsg('Te rog introdu numele înainte de trimitere.', 'err'); return; }
+        if (data.sloturi.length === 0){ toastMsg('Selectează cel puțin un slot.', 'err'); return; }
+        // Aici ai JSON-ul pregătit de trimitere:
+        // console.log('Payload de trimis', data);
+        toastMsg('Trimitere cu succes!', 'ok');
+      });
+
+      function serialize(){
+        const nume = nameInput.value.trim();
+        const slots = [...selected].map(id => {
+          const [zi, ora] = id.split('|');
+          const h = parseInt(ora.slice(0,2),10);
+          const start = `${String(h).padStart(2,'0')}:00`;
+          const end = `${String(h+1).padStart(2,'0')}:00`;
+          return { zi, start, end };
+        }).sort((a,b)=> days.indexOf(a.zi)-days.indexOf(b.zi) || a.start.localeCompare(b.start));
+        return { nume, sloturi: slots };
+      }
+
+      function updateStatus(){
+        const n = selected.size;
+        status.textContent = `${n} ${n===1? 'slot selectat' : 'sloturi selectate'}`;
+        sendBtn.disabled = !(nameInput.value.trim() && n>0);
+      }
+
+      nameInput.addEventListener('input', updateStatus);
+
+      function toastMsg(msg, type='ok'){
+        const el = document.createElement('div');
+        el.className = `t ${type}`;
+        el.textContent = msg;
+        toast.appendChild(el);
+        setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(4px)'; el.style.transition='all .4s'; }, 2500);
+        setTimeout(()=>{ toast.removeChild(el); }, 3000);
+      }
+
+      function restore(){
+        try{
+          const raw = localStorage.getItem('orarData');
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          if (data.nume) nameInput.value = data.nume;
+          if (Array.isArray(data.sloturi)){
+            data.sloturi.forEach(s => {
+              const h = parseInt(s.start.slice(0,2),10);
+              const id = keyOf(s.zi, h);
+              const el = findCell(id);
+              if (el) setSelected(id, true);
+            });
+          }
+        }catch(e){}
+        updateStatus();
+      }
+
+      restore();
+      document.getElementById('y').textContent = new Date().getFullYear();
+    })();
   </script>
 </body>
 </html>
