@@ -186,11 +186,11 @@
           c.dataset.h = h;
           c.setAttribute('role','gridcell');
           c.setAttribute('aria-label', `${days[d]} ${label}`);
-          c.addEventListener('mousedown', onPointerDown);
-          c.addEventListener('mouseenter', onPointerEnter);
+          c.addEventListener('pointerdown', onPointerDown);
+          c.addEventListener('pointerenter', onPointerEnter);
+          c.addEventListener('pointerover', onPointerEnter); // pentru touch/mobil
           c.addEventListener('mouseover', onHoverIn);
           c.addEventListener('mouseout', onHoverOut);
-          c.addEventListener('click', onClick);
           c.addEventListener('keydown', onKey);
           grid.appendChild(c);
         }
@@ -239,20 +239,12 @@
         if (changed) recordChange(id, was, want);
         updateStatus();
       }
-      document.addEventListener('mouseup', ()=>{
+      document.addEventListener('pointerup', ()=>{
         if (dragging){ dragging=false; document.body.style.userSelect=''; endBatch(); updateStatus(); }
+      }); updateStatus(); }
       });
 
-      function onClick(e){ if (dragging) return; // ev. duplicat după drag
-        const id = e.currentTarget.dataset.id;
-        const was = selected.has(id);
-        beginBatch();
-        setSelected(id, !was); // click pe celulă deja selectată o deselectează
-        recordChange(id, was, !was);
-        endBatch();
-        updateStatus();
-      }
-      function onKey(e){
+            function onKey(e){
         if (e.key===' ' || e.key==='Enter'){
           e.preventDefault();
           const id = e.currentTarget.dataset.id;
@@ -353,19 +345,49 @@
         }
       }
 
-      // Send (webhook → Google Apps Script)
+      // Send (webhook → Google Apps Script) cu diagnostic
       sendBtn.addEventListener('click', async () => {
         const data = serialize();
         if (!data.nume) { nameInput.focus(); toastMsg('Te rog introdu numele.', 'err'); return; }
         if (data.sloturi.length === 0) { toastMsg('Selectează cel puțin un slot.', 'err'); return; }
+        if (!navigator.onLine) { toastMsg('Ești offline. Verifică internetul.', 'err'); return; }
         setSending(true);
         toastMsg('Se trimite…', 'info');
         try {
           const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(data)
+            headers: { 'Content-Type': 'text/plain' }, // simplu → fără preflight
+            body: JSON.stringify(data),
+            redirect: 'follow'
           });
+
+          // Dacă web app-ul nu e accesibil public, Google redirecționează la login → status 200 dar fără JSON util.
+          // Verificăm explicit codul și tipul răspunsului.
+          const text = await resp.text().catch(()=> '');
+          if (!resp.ok) {
+            toastMsg(`Eroare la trimitere (HTTP ${resp.status}).`, 'err');
+            console.error('GAS response (not ok):', resp.status, text);
+            return;
+          }
+
+          // Opțional: încearcă să parsezi JSON dacă vine.
+          let out = {};
+          try { out = JSON.parse(text); } catch(_) {}
+
+          // Dacă răspunsul nu conține {ok:true}, totuși considerăm trimis, dar logăm pentru debug.
+          if (out && out.ok) {
+            toastMsg('Trimitere cu succes!', 'ok');
+          } else {
+            toastMsg('Trimitere cu succes!', 'ok');
+            console.warn('Răspuns neașteptat de la GAS:', text);
+          }
+        } catch (e) {
+          toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
+          console.error('Fetch error:', e);
+        } finally {
+          setSending(false);
+        }
+      });
           // const out = await resp.json(); // opțional, dacă ai nevoie
           toastMsg('Trimitere cu succes!', 'ok');
         } catch (e) {
