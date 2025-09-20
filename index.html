@@ -131,6 +131,8 @@
       const status = document.getElementById('status');
       const toast = document.getElementById('toast');
 
+      const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxmgnUHjcUFmWl9qEhwLcGrbtkviQUjS8AfWYzkdOnJbu8JIHtpiDNDj6ZJEpZtk1Mq/exec';
+
       const keyOf = (d,h) => `${d}|${String(h).padStart(2,'0')}:00`;
 
       const selected = new Set();
@@ -256,13 +258,23 @@
         catch(err){ toastMsg('Nu s-a putut salva local.', 'err'); }
       });
 
-      // Send (fake submit)
-      sendBtn.addEventListener('click', ()=>{
+      // Send (webhook → Google Apps Script)
+      sendBtn.addEventListener('click', async () => {
         const data = serialize();
-        if(!data.nume){ nameInput.focus(); toastMsg('Te rog introdu numele înainte de trimitere.', 'err'); return; }
-        if(data.sloturi.length===0){ toastMsg('Selectează cel puțin un slot.', 'err'); return; }
-        // console.log('Payload de trimis', data);
-        toastMsg('Trimitere cu succes!', 'ok');
+        if (!data.nume) { nameInput.focus(); toastMsg('Te rog introdu numele.', 'err'); return; }
+        if (data.sloturi.length === 0) { toastMsg('Selectează cel puțin un slot.', 'err'); return; }
+        try {
+          const resp = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(data)
+          });
+          // dacă vrei să verifici răspunsul real:
+          // const out = await resp.json();
+          toastMsg('Trimitere cu succes!', 'ok');
+        } catch (e) {
+          toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
+        }
       });
 
       function serialize(){
@@ -320,3 +332,4 @@
   </script>
 </body>
 </html>
+
