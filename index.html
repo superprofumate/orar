@@ -362,7 +362,8 @@
         try {
           const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
-            body: new URLSearchParams({ payload: JSON.stringify(data) })
+            headers: { 'Content-Type': 'text/plain' }, // simple request, fără preflight
+            body: JSON.stringify(data)
           });
           const raw = await resp.text();
           if (!resp.ok) {
