@@ -72,9 +72,6 @@
     .cell.slot:focus{outline:2px solid rgba(37,99,235,.5); outline-offset:-3px}
     .cell.head.active, .cell.hour.active{background:#eef2ff}
 
-    /* rând terminal 21:00 (fără sloturi, doar marcaj vizual) */
-    .cell.terminal{background:#f1f5f9;color:#94a3b8;pointer-events:none}
-
     footer{color:var(--muted);font-size:12px;padding:18px;text-align:center}
 
     /* Toast */
@@ -128,7 +125,7 @@
     (function(){
       const days = ["Luni","Marți","Miercuri","Joi","Vineri"]; // coloane
       const startHour = 7; // inclusiv
-      const endHour = 21; // limită superioară (vom afișa și rândul 21:00 ca marcaj terminal)
+      const endHour = 21; // inclusiv — acum rândul 21:00 e selectabil
 
       const grid = document.getElementById('grid');
       const nameInput = document.getElementById('name');
@@ -150,7 +147,7 @@
       const history = []; // {changes:[{id,prev,next}]}
 
       const dayHeads = []; // referințe la header-ele de zile
-      const hourHeads = []; // referințe la header-ele de ore (include și 21:00 terminal)
+      const hourHeads = []; // referințe la header-ele de ore (acum include și 21:00)
 
       // HEADER (colțul stânga-sus)
       const corner = cell('head','Ora');
@@ -168,44 +165,33 @@
         grid.appendChild(h);
       });
 
-      // ROWS (de la 07:00 până la **21:00 inclusiv** ca rând terminal)
+      // ROWS (de la 07:00 până la **21:00 inclusiv**, toate rândurile au celule selectabile)
       for (let h = startHour; h <= endHour; h++){
         const label = `${String(h).padStart(2,'0')}:00`;
         const hr = cell('hour', label);
         hr.classList.add('hour-head');
+        hr.tabIndex = 0;
+        hr.addEventListener('click', ()=> toggleHour(h));
+        hr.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleHour(h);} });
         hourHeads.push(hr);
-        if (h < endHour){
-          hr.tabIndex = 0;
-          hr.addEventListener('click', ()=> toggleHour(h));
-          hr.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleHour(h);} });
-        } else {
-          // rând terminal 21:00 – fără acțiuni
-          hr.style.cursor = 'default';
-          hr.style.fontWeight = '700';
-        }
         grid.appendChild(hr);
 
         for (let d = 0; d < days.length; d++){
-          if (h < endHour){
-            const id = keyOf(days[d], h);
-            const c = cell('slot','');
-            c.tabIndex = 0; // accesibilitate
-            c.dataset.id = id;
-            c.dataset.di = d;
-            c.dataset.h = h;
-            c.setAttribute('role','gridcell');
-            c.setAttribute('aria-label', `${days[d]} ${label}`);
-            c.addEventListener('pointerdown', onPointerDown);
-            c.addEventListener('pointerenter', onPointerEnter);
-            c.addEventListener('pointerover', onPointerEnter);
-            c.addEventListener('mouseover', onHoverIn);
-            c.addEventListener('mouseout', onHoverOut);
-            c.addEventListener('keydown', onKey);
-            grid.appendChild(c);
-          } else {
-            const c = cell('terminal','');
-            grid.appendChild(c);
-          }
+          const id = keyOf(days[d], h);
+          const c = cell('slot','');
+          c.tabIndex = 0; // accesibilitate
+          c.dataset.id = id;
+          c.dataset.di = d;
+          c.dataset.h = h;
+          c.setAttribute('role','gridcell');
+          c.setAttribute('aria-label', `${days[d]} ${label}`);
+          c.addEventListener('pointerdown', onPointerDown);
+          c.addEventListener('pointerenter', onPointerEnter);
+          c.addEventListener('pointerover', onPointerEnter);
+          c.addEventListener('mouseover', onHoverIn);
+          c.addEventListener('mouseout', onHoverOut);
+          c.addEventListener('keydown', onKey);
+          grid.appendChild(c);
         }
       }
 
@@ -283,16 +269,16 @@
         hourHeads[h - startHour]?.classList.remove('active');
       }
 
-      // Toggle pe coloane (zi) – exclude rândul terminal (h < endHour)
+      // Toggle pe coloane (zi) – include 21:00
       function toggleDay(di){
         const day = days[di];
         let want = false;
-        for (let h = startHour; h < endHour; h++){
+        for (let h = startHour; h <= endHour; h++){
           const id = keyOf(day, h);
           if (!selected.has(id)){ want = true; break; }
         }
         beginBatch();
-        for (let h = startHour; h < endHour; h++){
+        for (let h = startHour; h <= endHour; h++){
           const id = keyOf(day, h);
           const was = selected.has(id);
           if (setSelected(id, want)) recordChange(id, was, want);
@@ -300,9 +286,8 @@
         endBatch();
         updateStatus();
       }
-      // Toggle pe rând (oră) – nu permite pentru rândul 21:00
+      // Toggle pe rând (oră) – include 21:00
       function toggleHour(h){
-        if (h >= endHour) return; // rând terminal
         let want = false;
         for (let d = 0; d < days.length; d++){
           const id = keyOf(days[d], h);
@@ -359,7 +344,7 @@
         }
       }
 
-      // Send (webhook → Google Apps Script)
+      // Send (webhook → Google Apps Script) — form-urlencoded pentru a evita preflight
       sendBtn.addEventListener('click', async () => {
         const data = serialize();
         if (!data.nume) { nameInput.focus(); toastMsg('Te rog introdu numele.', 'err'); return; }
@@ -370,9 +355,7 @@
         try {
           const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(data),
-            redirect: 'follow'
+            body: new URLSearchParams({ payload: JSON.stringify(data) })
           });
           const text = await resp.text().catch(()=> '');
           if (!resp.ok) {
