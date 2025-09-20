@@ -61,7 +61,7 @@
     .status{margin-top:8px;font-size:14px;color:var(--muted)}
 
     .grid-wrap{overflow:auto;border-top:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius)}
-    .grid{display:grid;grid-template-columns: 120px repeat(5, 1fr); min-width:780px}
+    .grid{display:grid;grid-template-columns: 120px repeat(5, 1fr); min-width:780px; grid-auto-rows: 42px}
 
     .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:42px;display:grid;place-items:center;position:relative}
     .cell.head{background:#fafafa;color:#0f172a;font-weight:700;position:sticky;top:0;z-index:5; cursor:pointer}
@@ -125,7 +125,7 @@
     (function(){
       const days = ["Luni","Marți","Miercuri","Joi","Vineri"]; // coloane
       const startHour = 7; // inclusiv
-      const endHour = 21; // inclusiv — acum rândul 21:00 e selectabil
+      const endHour = 21; // inclusiv — rândul 21:00 e selectabil
 
       const grid = document.getElementById('grid');
       const nameInput = document.getElementById('name');
@@ -147,7 +147,7 @@
       const history = []; // {changes:[{id,prev,next}]}
 
       const dayHeads = []; // referințe la header-ele de zile
-      const hourHeads = []; // referințe la header-ele de ore (acum include și 21:00)
+      const hourHeads = []; // referințe la header-ele de ore (include 21:00)
 
       // HEADER (colțul stânga-sus)
       const corner = cell('head','Ora');
@@ -165,7 +165,7 @@
         grid.appendChild(h);
       });
 
-      // ROWS (de la 07:00 până la **21:00 inclusiv**, toate rândurile au celule selectabile)
+      // ROWS 07:00 .. 21:00 (toate rândurile au celule selectabile)
       for (let h = startHour; h <= endHour; h++){
         const label = `${String(h).padStart(2,'0')}:00`;
         const hr = cell('hour', label);
@@ -202,13 +202,20 @@
         return div;
       }
 
-      function findCell(id){ return grid.querySelector(`.cell.slot[data-id="${CSS.escape(id)}"]`); }
+      // Fallback pentru CSS.escape (nu toate browserele îl au)
+      function escSel(s){
+        if (window.CSS && typeof CSS.escape === 'function') return CSS.escape(s);
+        return String(s).replace(/([\\.\[\]#,:>+~*^$|()])/g, "\\$1");
+      }
+      function findCell(id){
+        return grid.querySelector(`.cell.slot[data-id="${escSel(id)}"]`);
+      }
 
       function setSelected(id, val){
         const el = findCell(id);
         const was = selected.has(id);
-        if (val && !was){ selected.add(id); el.classList.add('selected'); return true; }
-        if (!val && was){ selected.delete(id); el.classList.remove('selected'); return true; }
+        if (val && !was){ selected.add(id); el?.classList.add('selected'); return true; }
+        if (!val && was){ selected.delete(id); el?.classList.remove('selected'); return true; }
         return false;
       }
 
@@ -376,27 +383,6 @@
             const msg = (out && out.error) ? String(out.error) : 'Server a returnat ok:false';
             toastMsg('Eroare server: ' + msg, 'err');
             console.error('GAS resp (ok:false):', out);
-          }
-        } catch (e) {
-          toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
-          console.error('Fetch error:', e);
-        } finally {
-          setSending(false);
-        }
-      });
-          const text = await resp.text().catch(()=> '');
-          if (!resp.ok) {
-            toastMsg(`Eroare la trimitere (HTTP ${resp.status}).`, 'err');
-            console.error('GAS response (not ok):', resp.status, text);
-            return;
-          }
-          let out = {};
-          try { out = JSON.parse(text); } catch(_) {}
-          if (out && out.ok) {
-            toastMsg('Trimitere cu succes!', 'ok');
-          } else {
-            toastMsg('Trimitere cu succes!', 'ok');
-            console.warn('Răspuns neașteptat de la GAS:', text);
           }
         } catch (e) {
           toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
