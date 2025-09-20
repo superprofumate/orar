@@ -4,100 +4,106 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Orar disponibilități | Luni–Vineri 07:00–21:00</title>
-  <meta name="description" content="Selectează intervalele orare disponibile (Luni–Vineri, 07:00–21:00). Include nume, resetare, undo, salvare și trimitere." />
+  <meta name="description" content="Selectează rapid orele disponibile, corelează cu numele și gestionează modificările (undo, reset, salvare, trimitere)." />
   <meta name="robots" content="noindex, nofollow" />
   <style>
     :root{
-      --bg:#0b1220; /* albastru-închis subtil */
-      --panel:#0f172a; /* slate-900 */
-      --muted:#94a3b8; /* slate-400 */
-      --text:#e5e7eb; /* zinc-200 */
-      --accent:#22d3ee; /* cyan-400 */
-      --accent-2:#4f46e5; /* indigo-600 */
-      --danger:#ef4444;
-      --ok:#22c55e;
-      --grid:#1f2937; /* gray-800 */
-      --sel-bg:rgba(34, 211, 238, .2);
-      --sel-br:#22d3ee;
+      --bg:#f7f8fb;
+      --panel:#ffffff;
+      --text:#0f172a; /* slate-900 */
+      --muted:#64748b; /* slate-500 */
+      --line:#e2e8f0; /* slate-200 */
+      --line-strong:#cbd5e1; /* slate-300 */
+      --accent:#2563eb; /* blue-600 */
+      --accent-2:#0ea5e9; /* cyan-500 */
+      --ok:#16a34a; /* green-600 */
+      --danger:#ef4444; /* red-500 */
       --radius:16px;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --shadow:0 12px 35px rgba(15,23,42,.08);
       --maxw:1100px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:radial-gradient(1200px 800px at 20% -10%, #111827 0%, var(--bg) 40%, #05070c 100%); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:var(--text);}
-    a{color:inherit;text-decoration:none}
+    body{margin:0;background:linear-gradient(180deg,#f9fafb 0%, #f3f4f6 30%, #eef2f7 100%); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; color:var(--text)}
 
-    .container{max-width:var(--maxw);margin:0 auto;padding:20px}
-    header{position:sticky;top:0;background:linear-gradient(180deg, rgba(5,7,12,.9), rgba(5,7,12,.65));backdrop-filter: blur(6px);z-index:20;border-bottom:1px solid #0b1220}
-    .brand{font-weight:800;letter-spacing:.3px;font-size:18px;display:flex;align-items:center;gap:10px}
-    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
-    .nav{display:flex;align-items:center;justify-content:space-between}
+    .container{max-width:var(--maxw);margin:0 auto;padding:22px}
 
-    .panel{margin-top:18px;background:linear-gradient(180deg, #0e162a, #0a1222);border:1px solid #0f2139;border-radius:var(--radius);box-shadow:var(--shadow)}
-    .panel .inner{padding:18px}
+    header{position:sticky;top:0;z-index:20; background:rgba(255,255,255,.75); backdrop-filter: blur(10px); border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+    .brand .logo{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:white; font-weight:900}
+    .sub{font-size:12px;color:var(--muted)}
+
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .card .inner{padding:18px}
 
     .toolbar{display:grid;gap:12px}
-    @media (min-width: 820px){ .toolbar{grid-template-columns: 1.5fr auto auto auto auto} }
+    @media (min-width: 900px){ .toolbar{grid-template-columns: 1.6fr auto auto auto auto} }
 
-    label{font-size:14px;color:var(--muted)}
-    input[type="text"]{width:100%;padding:12px 14px;border-radius:12px;background:#0b1323;border:1px solid #14233c;color:var(--text);outline:none}
-    input[type="text"]:focus{border-color:#1d3d6b;box-shadow:0 0 0 3px rgba(79,70,229,.25)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="text"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line); outline:none; background:#fff}
+    input[type="text"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.15)}
 
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid #20304a;background:#0b1323;color:var(--text);cursor:pointer;user-select:none;transition:transform .05s ease, background .2s}
-    .btn:hover{background:#0f1a31}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--text);cursor:pointer;user-select:none;transition:transform .05s ease, box-shadow .2s, background .2s}
+    .btn:hover{box-shadow:0 4px 18px rgba(2,6,23,.08)}
     .btn:active{transform:translateY(1px)}
-    .btn.primary{background:linear-gradient(135deg, #2563eb, #06b6d4);border-color:#1d4ed8}
-    .btn.primary:hover{filter:brightness(1.05)}
-    .btn.ok{background:#11261a;border-color:#1f6f3a}
-    .btn.danger{background:#2a1212;border-color:#7f1d1d}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
+    .btn.ok{background:#f0fdf4;border-color:#bbf7d0}
+    .btn.danger{background:#fef2f2;border-color:#fecaca}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
 
-    .grid-wrap{overflow:auto;border-top:1px solid #0b1220;border-radius:0 0 var(--radius) var(--radius)}
-    .grid{display:grid;grid-template-columns: 110px repeat(5, 1fr); min-width:720px}
+    .legend{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-top:10px}
+    .swatch{width:16px;height:16px;border-radius:5px;background:rgba(37,99,235,.14); box-shadow:inset 0 0 0 2px rgba(37,99,235,.6)}
 
-    .cell{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);min-height:38px;display:grid;place-items:center;position:relative}
-    .cell.head{background:#0a1220;color:#cbd5e1;font-weight:700;position:sticky;top:0;z-index:5}
-    .cell.hour{background:#0a1220;color:#9aa6b2;font-weight:600;justify-content:start;padding-left:12px;position:sticky;left:0;z-index:4}
-    .cell.slot{cursor:pointer}
-    .cell.slot:focus{outline:2px solid #334155;outline-offset:-4px}
-    .cell.slot.selected{background:var(--sel-bg); box-shadow: inset 0 0 0 2px var(--sel-br)}
+    .status{margin-top:8px;font-size:14px;color:var(--muted)}
 
-    .legend{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-top:8px}
-    .swatch{width:14px;height:14px;border-radius:4px;box-shadow:0 0 0 2px var(--sel-br) inset;background:var(--sel-bg)}
+    .grid-wrap{overflow:auto;border-top:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius)}
+    .grid{display:grid;grid-template-columns: 120px repeat(5, 1fr); min-width:780px}
 
-    .status{margin-top:10px;font-size:14px;color:var(--muted)}
+    .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:42px;display:grid;place-items:center;position:relative}
+    .cell.head{background:#fafafa;color:#0f172a;font-weight:700;position:sticky;top:0;z-index:5}
+    .cell.hour{background:#fafafa;color:#334155;font-weight:600;justify-content:start;padding-left:12px;position:sticky;left:0;z-index:4}
+    .cell.slot{cursor:pointer; transition: background .12s ease, box-shadow .12s ease}
+    .cell.slot:hover{background:#f7fbff}
+    .cell.slot.selected{background:rgba(37,99,235,.12); box-shadow: inset 0 0 0 2px rgba(37,99,235,.55)}
+    .cell.slot:focus{outline:2px solid rgba(37,99,235,.5); outline-offset:-3px}
 
+    footer{color:var(--muted);font-size:12px;padding:18px;text-align:center}
+
+    /* Toast */
     .toast{position:fixed;right:20px;bottom:20px;display:grid;gap:10px;z-index:50}
-    .toast .t{padding:12px 14px;background:#0b1323;border:1px solid #1d2d4a;border-radius:12px;box-shadow:var(--shadow)}
-    .t.ok{border-color:#1f6f3a}
-    .t.err{border-color:#7f1d1d}
-
-    footer{color:var(--muted);font-size:12px;padding:18px; text-align:center}
+    .t{padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-size:14px}
+    .t.ok{border-color:#86efac}
+    .t.err{border-color:#fecaca}
   </style>
 </head>
 <body>
   <header>
     <div class="container nav">
-      <div class="brand"><span class="dot"></span> Orar disponibilități</div>
-      <div style="font-size:12px;color:var(--muted)">Luni–Vineri • 07:00–21:00 • selecție multiplă</div>
+      <div class="brand">
+        <div class="logo">O</div>
+        <div>
+          Orar disponibilități
+          <div class="sub">Luni–Vineri · 07:00–21:00 · selecție multiplă</div>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="container">
-    <section class="panel">
+    <section class="card">
       <div class="inner">
         <div class="toolbar">
           <div>
             <label for="name">Nume</label>
-            <input id="name" type="text" placeholder="Introdu numele (obligatoriu pentru trimitere)" />
+            <input id="name" type="text" placeholder="Introdu numele (obligatoriu la trimitere)" />
           </div>
           <button id="undoBtn" class="btn" disabled>↶ Undo</button>
           <button id="resetBtn" class="btn danger">Resetează orar</button>
           <button id="saveBtn" class="btn">💾 Salvează modificări</button>
           <button id="sendBtn" class="btn primary" disabled>✈️ Trimite date</button>
         </div>
-        <div class="legend"><span class="swatch"></span> Slot selectat (click pentru a comuta; click + drag pentru selecție continuă)</div>
+        <div class="legend"><span class="swatch"></span> Slot selectat (click pentru a comuta · click & drag pentru selecție continuă · Space/Enter pentru tastatură)</div>
         <div class="status" id="status">0 sloturi selectate</div>
       </div>
       <div class="grid-wrap">
@@ -105,7 +111,7 @@
       </div>
     </section>
 
-    <footer>© <span id="y"></span> Orar disponibilități. Datele se păstrează local (localStorage).</footer>
+    <footer>© <span id="y"></span> Orar disponibilități. Datele se păstrează local în browser (localStorage).</footer>
   </main>
 
   <div class="toast" id="toast"></div>
@@ -113,8 +119,8 @@
   <script>
     (function(){
       const days = ["Luni","Marți","Miercuri","Joi","Vineri"]; // coloane
-      const startHour = 7; // 07:00 inclusiv
-      const endHour = 21; // 21:00 exclusiv (ultimul slot 20:00–21:00)
+      const startHour = 7; // inclusiv
+      const endHour = 21; // exclusiv (ultimul slot 20–21)
 
       const grid = document.getElementById('grid');
       const nameInput = document.getElementById('name');
@@ -127,32 +133,30 @@
 
       const keyOf = (d,h) => `${d}|${String(h).padStart(2,'0')}:00`;
 
-      // stare curentă
       const selected = new Set();
       let dragging = false;
-      let dragMode = null; // 'select' sau 'deselect'
+      let dragMode = null; // 'select'|'deselect'
       let currentBatch = [];
-      const history = []; // stivă de acțiuni {changes:[{id, prev, next}]}
+      const history = []; // {changes:[{id,prev,next}]}
 
-      // Construiește headerul
-      const emptyHead = cell('head', '');
-      grid.appendChild(emptyHead);
-      days.forEach(d => grid.appendChild(cell('head', d)));
+      // HEADER
+      grid.appendChild(cell('head','Ora'));
+      days.forEach(d=> grid.appendChild(cell('head', d)));
 
-      // Construiește rândurile ore
+      // ROWS
       for (let h = startHour; h < endHour; h++){
         const label = `${String(h).padStart(2,'0')}:00`;
         grid.appendChild(cell('hour', label));
         for (let d = 0; d < days.length; d++){
           const id = keyOf(days[d], h);
-          const c = cell('slot', '');
-          c.tabIndex = 0; // focusabil pt accesibilitate
+          const c = cell('slot','');
+          c.tabIndex = 0; // accesibilitate
           c.dataset.id = id;
           c.setAttribute('role','gridcell');
           c.setAttribute('aria-label', `${days[d]} ${label}`);
-          c.addEventListener('mousedown', onMouseDown);
-          c.addEventListener('mouseenter', onMouseEnter);
-          c.addEventListener('click', onClick); // backup pt tap
+          c.addEventListener('mousedown', onPointerDown);
+          c.addEventListener('mouseenter', onPointerEnter);
+          c.addEventListener('click', onClick);
           c.addEventListener('keydown', onKey);
           grid.appendChild(c);
         }
@@ -165,6 +169,8 @@
         return div;
       }
 
+      function findCell(id){ return grid.querySelector(`.cell.slot[data-id="${CSS.escape(id)}"]`); }
+
       function setSelected(id, val){
         const el = findCell(id);
         const was = selected.has(id);
@@ -173,53 +179,47 @@
         return false;
       }
 
-      function findCell(id){
-        return grid.querySelector(`.cell.slot[data-id="${CSS.escape(id)}"]`);
-      }
-
       function beginBatch(){ currentBatch = []; }
-      function recordChange(id, prev, next){ if (prev !== next) currentBatch.push({id, prev, next}); }
-      function endBatch(){ if (currentBatch.length){ history.push({changes: currentBatch}); currentBatch = []; refreshUndo(); } }
+      function recordChange(id, prev, next){ if(prev!==next) currentBatch.push({id, prev, next}); }
+      function endBatch(){ if(currentBatch.length){ history.push({changes:[...currentBatch]}); currentBatch=[]; refreshUndo(); } }
 
-      function onMouseDown(e){
+      function onPointerDown(e){
         if (!e.currentTarget.classList.contains('slot')) return;
         e.preventDefault();
-        dragging = true;
-        document.body.style.userSelect = 'none';
+        dragging = true; document.body.style.userSelect='none';
         const id = e.currentTarget.dataset.id;
         const was = selected.has(id);
         dragMode = was ? 'deselect' : 'select';
         beginBatch();
-        const changed = setSelected(id, dragMode === 'select');
+        setSelected(id, dragMode==='select');
         recordChange(id, was, !was);
         updateStatus();
       }
-
-      function onMouseEnter(e){
+      function onPointerEnter(e){
         if (!dragging) return;
         if (!e.currentTarget.classList.contains('slot')) return;
         const id = e.currentTarget.dataset.id;
         const was = selected.has(id);
-        const want = dragMode === 'select';
+        const want = dragMode==='select';
         const changed = setSelected(id, want);
         if (changed) recordChange(id, was, want);
         updateStatus();
       }
+      document.addEventListener('mouseup', ()=>{
+        if (dragging){ dragging=false; document.body.style.userSelect=''; endBatch(); updateStatus(); }
+      });
 
-      function onClick(e){ // single click tap (fără drag)
-        // dacă a fost drag adevărat, evenimentul click vine oricum, dar nu vrem să dublem
-        if (dragging) return;
+      function onClick(e){ if (dragging) return; // ev. duplicat după drag
         const id = e.currentTarget.dataset.id;
         const was = selected.has(id);
         beginBatch();
-        const changed = setSelected(id, !was);
+        setSelected(id, !was);
         recordChange(id, was, !was);
         endBatch();
         updateStatus();
       }
-
       function onKey(e){
-        if (e.key === ' ' || e.key === 'Enter'){
+        if (e.key===' ' || e.key==='Enter'){
           e.preventDefault();
           const id = e.currentTarget.dataset.id;
           const was = selected.has(id);
@@ -231,51 +231,43 @@
         }
       }
 
-      document.addEventListener('mouseup', ()=>{
-        if (dragging){ dragging = false; document.body.style.userSelect = ''; endBatch(); updateStatus(); }
-      });
-
       // Undo
       undoBtn.addEventListener('click', ()=>{
         const act = history.pop();
-        if (!act) return;
-        act.changes.slice().reverse().forEach(ch => { setSelected(ch.id, ch.prev); });
+        if(!act) return;
+        act.changes.slice().reverse().forEach(ch=> setSelected(ch.id, ch.prev));
         refreshUndo();
         updateStatus();
       });
-
-      function refreshUndo(){ undoBtn.disabled = history.length === 0; }
+      function refreshUndo(){ undoBtn.disabled = history.length===0; }
 
       // Reset
       resetBtn.addEventListener('click', ()=>{
         beginBatch();
-        [...selected].forEach(id => { recordChange(id, true, false); setSelected(id, false); });
+        [...selected].forEach(id=>{ recordChange(id,true,false); setSelected(id,false); });
         endBatch();
         updateStatus();
       });
 
-      // Save (localStorage)
+      // Save local
       saveBtn.addEventListener('click', ()=>{
         const data = serialize();
-        try{
-          localStorage.setItem('orarData', JSON.stringify(data));
-          toastMsg('Modificări salvate local.', 'ok');
-        }catch(err){ toastMsg('Nu s-a putut salva local.', 'err'); }
+        try{ localStorage.setItem('orarData', JSON.stringify(data)); toastMsg('Modificări salvate local.', 'ok'); }
+        catch(err){ toastMsg('Nu s-a putut salva local.', 'err'); }
       });
 
       // Send (fake submit)
       sendBtn.addEventListener('click', ()=>{
         const data = serialize();
-        if (!data.nume){ nameInput.focus(); toastMsg('Te rog introdu numele înainte de trimitere.', 'err'); return; }
-        if (data.sloturi.length === 0){ toastMsg('Selectează cel puțin un slot.', 'err'); return; }
-        // Aici ai JSON-ul pregătit de trimitere:
+        if(!data.nume){ nameInput.focus(); toastMsg('Te rog introdu numele înainte de trimitere.', 'err'); return; }
+        if(data.sloturi.length===0){ toastMsg('Selectează cel puțin un slot.', 'err'); return; }
         // console.log('Payload de trimis', data);
         toastMsg('Trimitere cu succes!', 'ok');
       });
 
       function serialize(){
         const nume = nameInput.value.trim();
-        const slots = [...selected].map(id => {
+        const slots = [...selected].map(id=>{
           const [zi, ora] = id.split('|');
           const h = parseInt(ora.slice(0,2),10);
           const start = `${String(h).padStart(2,'0')}:00`;
@@ -298,22 +290,24 @@
         el.className = `t ${type}`;
         el.textContent = msg;
         toast.appendChild(el);
-        setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(4px)'; el.style.transition='all .4s'; }, 2500);
-        setTimeout(()=>{ toast.removeChild(el); }, 3000);
+        requestAnimationFrame(()=>{
+          el.style.opacity = '1';
+        });
+        setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(4px)'; el.style.transition='all .35s'; }, 2200);
+        setTimeout(()=>{ if (el.parentNode) toast.removeChild(el); }, 2700);
       }
 
       function restore(){
         try{
           const raw = localStorage.getItem('orarData');
-          if (!raw) return;
+          if(!raw) return;
           const data = JSON.parse(raw);
-          if (data.nume) nameInput.value = data.nume;
-          if (Array.isArray(data.sloturi)){
-            data.sloturi.forEach(s => {
+          if(data.nume) nameInput.value = data.nume;
+          if(Array.isArray(data.sloturi)){
+            data.sloturi.forEach(s=>{
               const h = parseInt(s.start.slice(0,2),10);
               const id = keyOf(s.zi, h);
-              const el = findCell(id);
-              if (el) setSelected(id, true);
+              if(findCell(id)) setSelected(id,true);
             });
           }
         }catch(e){}
