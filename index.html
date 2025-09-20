@@ -72,6 +72,9 @@
     .cell.slot:focus{outline:2px solid rgba(37,99,235,.5); outline-offset:-3px}
     .cell.head.active, .cell.hour.active{background:#eef2ff}
 
+    /* rând terminal 21:00 (fără sloturi, doar marcaj vizual) */
+    .cell.terminal{background:#f1f5f9;color:#94a3b8;pointer-events:none}
+
     footer{color:var(--muted);font-size:12px;padding:18px;text-align:center}
 
     /* Toast */
@@ -125,7 +128,7 @@
     (function(){
       const days = ["Luni","Marți","Miercuri","Joi","Vineri"]; // coloane
       const startHour = 7; // inclusiv
-      const endHour = 21; // exclusiv (ultimul slot 20–21)
+      const endHour = 21; // limită superioară (vom afișa și rândul 21:00 ca marcaj terminal)
 
       const grid = document.getElementById('grid');
       const nameInput = document.getElementById('name');
@@ -147,7 +150,7 @@
       const history = []; // {changes:[{id,prev,next}]}
 
       const dayHeads = []; // referințe la header-ele de zile
-      const hourHeads = []; // referințe la header-ele de ore
+      const hourHeads = []; // referințe la header-ele de ore (include și 21:00 terminal)
 
       // HEADER (colțul stânga-sus)
       const corner = cell('head','Ora');
@@ -165,34 +168,44 @@
         grid.appendChild(h);
       });
 
-      // ROWS
-      for (let h = startHour; h < endHour; h++){
+      // ROWS (de la 07:00 până la **21:00 inclusiv** ca rând terminal)
+      for (let h = startHour; h <= endHour; h++){
         const label = `${String(h).padStart(2,'0')}:00`;
         const hr = cell('hour', label);
         hr.classList.add('hour-head');
-        hr.tabIndex = 0;
-        const hourIdx = h - startHour;
-        hr.addEventListener('click', ()=> toggleHour(h));
-        hr.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleHour(h);} });
         hourHeads.push(hr);
+        if (h < endHour){
+          hr.tabIndex = 0;
+          hr.addEventListener('click', ()=> toggleHour(h));
+          hr.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleHour(h);} });
+        } else {
+          // rând terminal 21:00 – fără acțiuni
+          hr.style.cursor = 'default';
+          hr.style.fontWeight = '700';
+        }
         grid.appendChild(hr);
 
         for (let d = 0; d < days.length; d++){
-          const id = keyOf(days[d], h);
-          const c = cell('slot','');
-          c.tabIndex = 0; // accesibilitate
-          c.dataset.id = id;
-          c.dataset.di = d;
-          c.dataset.h = h;
-          c.setAttribute('role','gridcell');
-          c.setAttribute('aria-label', `${days[d]} ${label}`);
-          c.addEventListener('pointerdown', onPointerDown);
-          c.addEventListener('pointerenter', onPointerEnter);
-          c.addEventListener('pointerover', onPointerEnter); // pentru touch/mobil
-          c.addEventListener('mouseover', onHoverIn);
-          c.addEventListener('mouseout', onHoverOut);
-          c.addEventListener('keydown', onKey);
-          grid.appendChild(c);
+          if (h < endHour){
+            const id = keyOf(days[d], h);
+            const c = cell('slot','');
+            c.tabIndex = 0; // accesibilitate
+            c.dataset.id = id;
+            c.dataset.di = d;
+            c.dataset.h = h;
+            c.setAttribute('role','gridcell');
+            c.setAttribute('aria-label', `${days[d]} ${label}`);
+            c.addEventListener('pointerdown', onPointerDown);
+            c.addEventListener('pointerenter', onPointerEnter);
+            c.addEventListener('pointerover', onPointerEnter);
+            c.addEventListener('mouseover', onHoverIn);
+            c.addEventListener('mouseout', onHoverOut);
+            c.addEventListener('keydown', onKey);
+            grid.appendChild(c);
+          } else {
+            const c = cell('terminal','');
+            grid.appendChild(c);
+          }
         }
       }
 
@@ -241,16 +254,15 @@
       }
       document.addEventListener('pointerup', ()=>{
         if (dragging){ dragging=false; document.body.style.userSelect=''; endBatch(); updateStatus(); }
-      }); updateStatus(); }
       });
 
-            function onKey(e){
+      function onKey(e){
         if (e.key===' ' || e.key==='Enter'){
           e.preventDefault();
           const id = e.currentTarget.dataset.id;
           const was = selected.has(id);
           beginBatch();
-          setSelected(id, !was);
+          setSelected(id, !was); // toggle la key
           recordChange(id, was, !was);
           endBatch();
           updateStatus();
@@ -271,7 +283,7 @@
         hourHeads[h - startHour]?.classList.remove('active');
       }
 
-      // Toggle pe coloane (zi) și rânduri (oră)
+      // Toggle pe coloane (zi) – exclude rândul terminal (h < endHour)
       function toggleDay(di){
         const day = days[di];
         let want = false;
@@ -288,7 +300,9 @@
         endBatch();
         updateStatus();
       }
+      // Toggle pe rând (oră) – nu permite pentru rândul 21:00
       function toggleHour(h){
+        if (h >= endHour) return; // rând terminal
         let want = false;
         for (let d = 0; d < days.length; d++){
           const id = keyOf(days[d], h);
@@ -345,7 +359,7 @@
         }
       }
 
-      // Send (webhook → Google Apps Script) cu diagnostic
+      // Send (webhook → Google Apps Script)
       sendBtn.addEventListener('click', async () => {
         const data = serialize();
         if (!data.nume) { nameInput.focus(); toastMsg('Te rog introdu numele.', 'err'); return; }
@@ -356,25 +370,18 @@
         try {
           const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' }, // simplu → fără preflight
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(data),
             redirect: 'follow'
           });
-
-          // Dacă web app-ul nu e accesibil public, Google redirecționează la login → status 200 dar fără JSON util.
-          // Verificăm explicit codul și tipul răspunsului.
           const text = await resp.text().catch(()=> '');
           if (!resp.ok) {
             toastMsg(`Eroare la trimitere (HTTP ${resp.status}).`, 'err');
             console.error('GAS response (not ok):', resp.status, text);
             return;
           }
-
-          // Opțional: încearcă să parsezi JSON dacă vine.
           let out = {};
           try { out = JSON.parse(text); } catch(_) {}
-
-          // Dacă răspunsul nu conține {ok:true}, totuși considerăm trimis, dar logăm pentru debug.
           if (out && out.ok) {
             toastMsg('Trimitere cu succes!', 'ok');
           } else {
@@ -384,14 +391,6 @@
         } catch (e) {
           toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
           console.error('Fetch error:', e);
-        } finally {
-          setSending(false);
-        }
-      });
-          // const out = await resp.json(); // opțional, dacă ai nevoie
-          toastMsg('Trimitere cu succes!', 'ok');
-        } catch (e) {
-          toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
         } finally {
           setSending(false);
         }
