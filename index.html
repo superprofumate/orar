@@ -51,6 +51,9 @@
     .btn.ok{background:#f0fdf4;border-color:#bbf7d0}
     .btn.danger{background:#fef2f2;border-color:#fecaca}
     .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn.loading{pointer-events:none; opacity:.9}
+    .btn .spinner{width:14px;height:14px;border-radius:999px;border:2px solid #ffffff80;border-top-color:#ffffff;display:inline-block;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
     .legend{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-top:10px}
     .swatch{width:16px;height:16px;border-radius:5px;background:rgba(37,99,235,.14); box-shadow:inset 0 0 0 2px rgba(37,99,235,.6)}
@@ -61,12 +64,13 @@
     .grid{display:grid;grid-template-columns: 120px repeat(5, 1fr); min-width:780px}
 
     .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:42px;display:grid;place-items:center;position:relative}
-    .cell.head{background:#fafafa;color:#0f172a;font-weight:700;position:sticky;top:0;z-index:5}
-    .cell.hour{background:#fafafa;color:#334155;font-weight:600;justify-content:start;padding-left:12px;position:sticky;left:0;z-index:4}
+    .cell.head{background:#fafafa;color:#0f172a;font-weight:700;position:sticky;top:0;z-index:5; cursor:pointer}
+    .cell.hour{background:#fafafa;color:#334155;font-weight:600;justify-content:start;padding-left:12px;position:sticky;left:0;z-index:4; cursor:pointer}
     .cell.slot{cursor:pointer; transition: background .12s ease, box-shadow .12s ease}
     .cell.slot:hover{background:#f7fbff}
     .cell.slot.selected{background:rgba(37,99,235,.12); box-shadow: inset 0 0 0 2px rgba(37,99,235,.55)}
     .cell.slot:focus{outline:2px solid rgba(37,99,235,.5); outline-offset:-3px}
+    .cell.head.active, .cell.hour.active{background:#eef2ff}
 
     footer{color:var(--muted);font-size:12px;padding:18px;text-align:center}
 
@@ -75,6 +79,7 @@
     .t{padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-size:14px}
     .t.ok{border-color:#86efac}
     .t.err{border-color:#fecaca}
+    .t.info{border-color:#cbd5e1}
   </style>
 </head>
 <body>
@@ -104,7 +109,7 @@
           <button id="sendBtn" class="btn primary" disabled>✈️ Trimite date</button>
         </div>
         <div class="legend"><span class="swatch"></span> Slot selectat (click pentru a comuta · click & drag pentru selecție continuă · Space/Enter pentru tastatură)</div>
-        <div class="status" id="status">0 sloturi selectate</div>
+        <div class="status" id="status" aria-live="polite">0 sloturi selectate</div>
       </div>
       <div class="grid-wrap">
         <div id="grid" class="grid" aria-label="Orar selectabil Luni–Vineri, 07:00–21:00" role="grid"></div>
@@ -141,23 +146,50 @@
       let currentBatch = [];
       const history = []; // {changes:[{id,prev,next}]}
 
-      // HEADER
-      grid.appendChild(cell('head','Ora'));
-      days.forEach(d=> grid.appendChild(cell('head', d)));
+      const dayHeads = []; // referințe la header-ele de zile
+      const hourHeads = []; // referințe la header-ele de ore
+
+      // HEADER (colțul stânga-sus)
+      const corner = cell('head','Ora');
+      corner.style.cursor = 'default';
+      grid.appendChild(corner);
+
+      // Header zile + click = selectează/deselectează toată ziua
+      days.forEach((d, di)=>{
+        const h = cell('head', d);
+        h.classList.add('day-head');
+        h.tabIndex = 0;
+        h.addEventListener('click', ()=> toggleDay(di));
+        h.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleDay(di);} });
+        dayHeads.push(h);
+        grid.appendChild(h);
+      });
 
       // ROWS
       for (let h = startHour; h < endHour; h++){
         const label = `${String(h).padStart(2,'0')}:00`;
-        grid.appendChild(cell('hour', label));
+        const hr = cell('hour', label);
+        hr.classList.add('hour-head');
+        hr.tabIndex = 0;
+        const hourIdx = h - startHour;
+        hr.addEventListener('click', ()=> toggleHour(h));
+        hr.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggleHour(h);} });
+        hourHeads.push(hr);
+        grid.appendChild(hr);
+
         for (let d = 0; d < days.length; d++){
           const id = keyOf(days[d], h);
           const c = cell('slot','');
           c.tabIndex = 0; // accesibilitate
           c.dataset.id = id;
+          c.dataset.di = d;
+          c.dataset.h = h;
           c.setAttribute('role','gridcell');
           c.setAttribute('aria-label', `${days[d]} ${label}`);
           c.addEventListener('mousedown', onPointerDown);
           c.addEventListener('mouseenter', onPointerEnter);
+          c.addEventListener('mouseover', onHoverIn);
+          c.addEventListener('mouseout', onHoverOut);
           c.addEventListener('click', onClick);
           c.addEventListener('keydown', onKey);
           grid.appendChild(c);
@@ -215,7 +247,7 @@
         const id = e.currentTarget.dataset.id;
         const was = selected.has(id);
         beginBatch();
-        setSelected(id, !was);
+        setSelected(id, !was); // click pe celulă deja selectată o deselectează
         recordChange(id, was, !was);
         endBatch();
         updateStatus();
@@ -231,6 +263,53 @@
           endBatch();
           updateStatus();
         }
+      }
+
+      // Hover highlight pentru un look profesionist
+      function onHoverIn(e){
+        const di = Number(e.currentTarget.dataset.di);
+        const h = Number(e.currentTarget.dataset.h);
+        dayHeads[di]?.classList.add('active');
+        hourHeads[h - startHour]?.classList.add('active');
+      }
+      function onHoverOut(e){
+        const di = Number(e.currentTarget.dataset.di);
+        const h = Number(e.currentTarget.dataset.h);
+        dayHeads[di]?.classList.remove('active');
+        hourHeads[h - startHour]?.classList.remove('active');
+      }
+
+      // Toggle pe coloane (zi) și rânduri (oră)
+      function toggleDay(di){
+        const day = days[di];
+        let want = false;
+        for (let h = startHour; h < endHour; h++){
+          const id = keyOf(day, h);
+          if (!selected.has(id)){ want = true; break; }
+        }
+        beginBatch();
+        for (let h = startHour; h < endHour; h++){
+          const id = keyOf(day, h);
+          const was = selected.has(id);
+          if (setSelected(id, want)) recordChange(id, was, want);
+        }
+        endBatch();
+        updateStatus();
+      }
+      function toggleHour(h){
+        let want = false;
+        for (let d = 0; d < days.length; d++){
+          const id = keyOf(days[d], h);
+          if (!selected.has(id)){ want = true; break; }
+        }
+        beginBatch();
+        for (let d = 0; d < days.length; d++){
+          const id = keyOf(days[d], h);
+          const was = selected.has(id);
+          if (setSelected(id, want)) recordChange(id, was, want);
+        }
+        endBatch();
+        updateStatus();
       }
 
       // Undo
@@ -258,22 +337,41 @@
         catch(err){ toastMsg('Nu s-a putut salva local.', 'err'); }
       });
 
+      // State de trimitere (loading)
+      function setSending(flag){
+        const btns = [undoBtn, resetBtn, saveBtn, sendBtn];
+        btns.forEach(b=> b.disabled = flag);
+        nameInput.disabled = flag;
+        if (flag){
+          sendBtn.classList.add('loading');
+          sendBtn.dataset.label = sendBtn.innerHTML;
+          sendBtn.innerHTML = '<span class="spinner"></span> Se trimite…';
+        } else {
+          sendBtn.classList.remove('loading');
+          sendBtn.innerHTML = sendBtn.dataset.label || '✈️ Trimite date';
+          updateStatus();
+        }
+      }
+
       // Send (webhook → Google Apps Script)
       sendBtn.addEventListener('click', async () => {
         const data = serialize();
         if (!data.nume) { nameInput.focus(); toastMsg('Te rog introdu numele.', 'err'); return; }
         if (data.sloturi.length === 0) { toastMsg('Selectează cel puțin un slot.', 'err'); return; }
+        setSending(true);
+        toastMsg('Se trimite…', 'info');
         try {
           const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(data)
           });
-          // dacă vrei să verifici răspunsul real:
-          // const out = await resp.json();
+          // const out = await resp.json(); // opțional, dacă ai nevoie
           toastMsg('Trimitere cu succes!', 'ok');
         } catch (e) {
           toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
+        } finally {
+          setSending(false);
         }
       });
 
@@ -302,9 +400,7 @@
         el.className = `t ${type}`;
         el.textContent = msg;
         toast.appendChild(el);
-        requestAnimationFrame(()=>{
-          el.style.opacity = '1';
-        });
+        requestAnimationFrame(()=>{ el.style.opacity = '1'; });
         setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(4px)'; el.style.transition='all .35s'; }, 2200);
         setTimeout(()=>{ if (el.parentNode) toast.removeChild(el); }, 2700);
       }
@@ -332,4 +428,3 @@
   </script>
 </body>
 </html>
-
