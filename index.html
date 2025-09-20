@@ -357,6 +357,33 @@
             method: 'POST',
             body: new URLSearchParams({ payload: JSON.stringify(data) })
           });
+          const raw = await resp.text();
+          if (!resp.ok) {
+            toastMsg(`Eroare la trimitere (HTTP ${resp.status}).`, 'err');
+            console.error('GAS resp (http error):', resp.status, raw);
+            return;
+          }
+          let out = null;
+          try { out = JSON.parse(raw); } catch (e) {
+            toastMsg('Răspuns invalid de la server (nu e JSON).', 'err');
+            console.error('GAS resp (not JSON):', raw);
+            return;
+          }
+          if (out && out.ok) {
+            const n = typeof out.inserted === 'number' ? out.inserted : data.sloturi.length;
+            toastMsg(`Trimitere cu succes! (${n} rând${n===1?'':'uri'})`, 'ok');
+          } else {
+            const msg = (out && out.error) ? String(out.error) : 'Server a returnat ok:false';
+            toastMsg('Eroare server: ' + msg, 'err');
+            console.error('GAS resp (ok:false):', out);
+          }
+        } catch (e) {
+          toastMsg('Eroare la trimitere. Verifică conexiunea/URL.', 'err');
+          console.error('Fetch error:', e);
+        } finally {
+          setSending(false);
+        }
+      });
           const text = await resp.text().catch(()=> '');
           if (!resp.ok) {
             toastMsg(`Eroare la trimitere (HTTP ${resp.status}).`, 'err');
